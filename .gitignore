@@ -1,0 +1,11 @@
+# Exclude Speckit and local agent artifacts
+.specify/
+.github/prompts/speckit.*
+
+# Local temp/debug files
+.tmp_*
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/
