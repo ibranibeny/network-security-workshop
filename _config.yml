@@ -1,7 +1,7 @@
 title: Azure Network Security Workshop
 description: Hands-on workshop for Azure network security controls and simulations
 remote_theme: just-the-docs/just-the-docs
-url: "https://benyibrani.github.io"
+url: "https://ibranibeny.github.io"
 baseurl: "/network-security-workshop"
 
 # Just the Docs settings
@@ -11,7 +11,7 @@ heading_anchors: true
 
 aux_links:
   "Workshop Repository":
-    - "https://github.com/benyibrani/network-security-workshop"
+    - "https://github.com/ibranibeny/network-security-workshop"
 
 nav_sort: case_insensitive
 
