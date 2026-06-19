@@ -9,6 +9,10 @@ color_scheme: light
 search_enabled: true
 heading_anchors: true
 
+# Enable Mermaid diagram rendering (just-the-docs built-in support)
+mermaid:
+  version: "10.9.1"
+
 aux_links:
   "Workshop Repository":
     - "https://github.com/ibranibeny/network-security-workshop"
