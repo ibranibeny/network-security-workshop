@@ -34,16 +34,24 @@ $WebAppBackendFqdn = 'ns-juice-demo-bibrani.westus.azurecontainer.io'  # ACI Jui
 $WebAppBackendPort = 3000
 $WebAppBackendProtocol = 'Http'
 
-# --- Docker Hub login (PREREQUISITE for the ACI backend) ---------------------
-# Docker Hub rate-limits ANONYMOUS pulls, which makes `az container create` fail
-# intermittently with RegistryErrorResponse. Supply a (free) Docker Hub account so
-# the pull is authenticated. NO SECRET IS STORED HERE (Principle IV/VII): the values
-# are read from environment variables, and the password is prompted securely if unset.
-#   PowerShell:  $env:DOCKERHUB_USERNAME = 'youruser'; $env:DOCKERHUB_PASSWORD = '<token>'
-# Prefer a Docker Hub *access token* (Account Settings -> Security) over your password.
+# --- Container backend image (OWASP Juice Shop) via Azure Container Registry --
+# RELIABILITY NOTE: pulling directly from Docker Hub (docker.io) is unreliable here.
+# Anonymous pulls are rate-limited (RegistryErrorResponse "retry later"), and basic
+# auth is rejected when the Docker Hub account has 2FA (InaccessibleImage). The
+# RELIABLE method used by this lab is to import the image ONCE into a private Azure
+# Container Registry (a server-side copy - no local Docker, no Docker Hub login on the
+# client) and have ACI pull from ACR using ACR admin credentials. See create-aci.ps1.
+#   az acr create  -g <rg> -n <acr> --sku Basic --admin-enabled true
+#   az acr import  -n <acr> --source docker.io/bkimminich/juice-shop:latest --image juice-shop:latest
+# ACR names are GLOBALLY UNIQUE, 5-50 lowercase alphanumeric chars. Edit if taken.
+$AcrName              = 'nsdemoacrbibrani'                          # private registry for the backend image
+$AcrImage            = 'juice-shop:latest'                         # repository:tag inside ACR
+$SourceContainerImage = 'docker.io/bkimminich/juice-shop:latest'   # source image imported into ACR
+$AciName             = 'ns-juice-aci'                              # Azure Container Instance hosting Juice Shop
+
+# Legacy Docker Hub env vars (OPTIONAL fallback only - the ACR method above is preferred).
 $DockerHubUsername = $env:DOCKERHUB_USERNAME
-$DockerHubPassword = $env:DOCKERHUB_PASSWORD   # leave unset to be prompted securely
-$AciName           = 'ns-juice-aci'            # Azure Container Instance hosting Juice Shop
+$DockerHubPassword = $env:DOCKERHUB_PASSWORD
 
 # VM sizing and images (validate currency per Principle I with Get-AzVMImageSku)
 $VmSize = 'Standard_D2s_v3'
@@ -75,6 +83,9 @@ $Lab = [ordered]@{
     DockerHubUsername = $DockerHubUsername
     DockerHubPassword = $DockerHubPassword
     AciName           = $AciName
+    AcrName           = $AcrName
+    AcrImage          = $AcrImage
+    SourceContainerImage = $SourceContainerImage
     VmSize            = $VmSize
     Win11Image        = $Win11Image
     KaliImage         = $KaliImage

@@ -180,16 +180,14 @@ This is the suggested flow for running the lab as a guided session (~half a day)
 
 1. **Prerequisites check.** Confirm PowerShell 7+, the `Az` module, and an Azure subscription with
    quota for ≥ 6 vCPUs of `Standard_D2s_v3` in `westus`.
-2. **Docker Hub account (for the ACI backend).** The OWASP Juice Shop image is pulled from Docker
-   Hub, which **rate-limits anonymous pulls** (causing `RegistryErrorResponse` on
-   `az container create`). Sign up for a free account at <https://hub.docker.com>, create an
-   **access token** (Account Settings → Security), and expose the credentials as environment
-   variables **before** building so nothing secret is stored in the repo:
-
-   ```powershell
-   $env:DOCKERHUB_USERNAME = '<your-docker-id>'
-   $env:DOCKERHUB_PASSWORD = '<your-access-token>'   # token preferred over password
-   ```
+2. **Backend image via Azure Container Registry (ACI backend).** The OWASP Juice Shop image is
+   pulled from Docker Hub, which **rate-limits anonymous pulls** and **rejects basic auth when the
+   account has 2FA** — both make `az container create` against `docker.io` fail
+   (`RegistryErrorResponse` / `InaccessibleImage`). The **reliable method** this lab uses is to
+   import the image **once** into a private Azure Container Registry (a server-side copy — no local
+   Docker and no Docker Hub login on the client), then run ACI from ACR. The
+   [`deploy/create-aci.ps1`](deploy/create-aci.ps1) script automates all of it (ACR create → `az acr
+   import` → ACI create). No Docker Hub account is required.
 
 3. **Cost briefing.** Walk through the [cost table](#cost-warning). Stress that **teardown is
    mandatory** and that **DDoS defaults OFF**.

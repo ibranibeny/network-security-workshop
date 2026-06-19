@@ -178,21 +178,15 @@ flowchart LR
 |------|-----|----------|
 | **PowerShell 7+** (`pwsh`) | Runs the deploy scripts | `pwsh --version` |
 | **Az PowerShell module** | Azure cmdlets | `Get-Module Az.Accounts -ListAvailable` |
-| **Azure CLI** (`az`) | Used for a few steps where it is more reliable | `az version` |
+| **Azure CLI** (`az`) | Used for the ACR/ACI backend and a few steps where it is more reliable | `az version` |
 | **An Azure subscription** | Somewhere to deploy | `az account show` |
-| **A Docker Hub account** | Authenticated image pull for the Juice Shop container | <https://hub.docker.com> |
 
-> **Docker Hub login is a prerequisite (for the ACI backend).** The Juice Shop image lives on Docker
-> Hub, which **rate-limits anonymous pulls** — an unauthenticated `az container create` can fail with
-> `RegistryErrorResponse`. Create a **free** Docker Hub account, generate an **access token**
-> (*Account Settings → Security*), and set these environment variables **before** you build. Nothing
-> secret is written to the repo — `config.ps1` reads them from the environment (and prompts securely
-> if the password is unset):
->
-> ```powershell
-> $env:DOCKERHUB_USERNAME = '<your-docker-id>'
-> $env:DOCKERHUB_PASSWORD = '<your-access-token>'   # prefer a token over your real password
-> ```
+> **No Docker Hub account required.** Pulling the Juice Shop image directly from Docker Hub
+> (`docker.io`) is unreliable — anonymous pulls are **rate-limited** (`RegistryErrorResponse`) and
+> basic auth is **rejected when the account has 2FA** (`InaccessibleImage`). Instead, this lab
+> imports the image **once** into a private **Azure Container Registry** (a server-side copy — no
+> local Docker, no Docker Hub login on the client) and runs ACI from ACR. The
+> [`deploy/create-aci.ps1`](../deploy/create-aci.ps1) script automates the whole flow.
 
 > **Quota note (important for sponsored / MCAP subscriptions):** App Service plans need dedicated VM
 > quota, which some sponsored subscriptions cap at **0**. If `New-AzAppServicePlan` fails, host the
@@ -224,26 +218,36 @@ cd deploy
 ./01-networking.ps1     # hub + 2 spokes, peering, public IPs
 ./02-security-core.ps1  # Firewall Premium + IDPS, NSGs, UDR (DDoS optional/off)
 ./03-compute.ps1        # 3 VMs (prompts for a VM password) + Bastion
+./create-aci.ps1        # Juice Shop backend on ACI via ACR (no Docker Hub login needed)
 ./04-app-delivery.ps1   # Juice Shop backend + App Gateway WAFv2 + Front Door Premium WAF
 ./05-monitoring.ps1     # Log Analytics workspace + diagnostic settings
 ```
 
-> **One manual step — create the Juice Shop container (ACI).** Because App Service quota is 0 on
-> sponsored subs, the backend is an **Azure Container Instance**. Create it once (before or just after
-> `04`), using the Docker Hub credentials from [section 4](#4-before-you-start) so the pull is
-> authenticated. The DNS label must match `$WebAppBackendFqdn` in `config.ps1`:
+> **One step — create the Juice Shop container (ACI) via ACR.** Because App Service quota is 0 on
+> sponsored subs, the backend is an **Azure Container Instance**. Run the helper script once (before
+> or just after `04`). It is idempotent and pulls the image reliably through a private Azure
+> Container Registry — **no Docker Hub login needed**:
 >
 > ```powershell
+> ./create-aci.ps1
+> ```
+>
+> Under the hood it runs (names come from `config.ps1`):
+>
+> ```powershell
+> az acr create -g rg-netsec-demo -n nsdemoacrbibrani --sku Basic --admin-enabled true
+> az acr import -n nsdemoacrbibrani --source docker.io/bkimminich/juice-shop:latest --image juice-shop:latest
+> $u = az acr credential show -n nsdemoacrbibrani --query username -o tsv
+> $p = az acr credential show -n nsdemoacrbibrani --query passwords[0].value -o tsv
 > az container create `
 >   --resource-group rg-netsec-demo `
 >   --name ns-juice-aci `
->   --image bkimminich/juice-shop:latest `
+>   --image nsdemoacrbibrani.azurecr.io/juice-shop:latest `
 >   --os-type Linux --cpu 1 --memory 1.5 `
 >   --ports 3000 --ip-address Public `
 >   --dns-name-label ns-juice-demo-bibrani `
->   --registry-login-server index.docker.io `
->   --registry-username $env:DOCKERHUB_USERNAME `
->   --registry-password $env:DOCKERHUB_PASSWORD
+>   --registry-login-server nsdemoacrbibrani.azurecr.io `
+>   --registry-username $u --registry-password $p
 > ```
 >
 > Then confirm it is reachable:

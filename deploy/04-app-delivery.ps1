@@ -19,8 +19,10 @@
     capacity units) are cost-bearing. Toggle in config.ps1 if you only need part of the chain.
 
 .NOTES
-    Prerequisite: 03-compute.ps1 (and, for the default ACI backend, the Juice Shop
-    container created via `az container create` using the Docker Hub credentials).
+    Prerequisite: 03-compute.ps1 and, for the default ACI backend, the Juice Shop
+    container created by `create-aci.ps1` (imports the image into a private Azure
+    Container Registry, then runs ACI from ACR - reliable, unlike pulling docker.io
+    directly).
 #>
 [CmdletBinding()]
 param()

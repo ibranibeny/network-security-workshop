@@ -34,6 +34,7 @@ $modules = @(
     '01-networking.ps1'
     '02-security-core.ps1'
     '03-compute.ps1'
+    'create-aci.ps1'
     '04-app-delivery.ps1'
     '05-monitoring.ps1'
 )
