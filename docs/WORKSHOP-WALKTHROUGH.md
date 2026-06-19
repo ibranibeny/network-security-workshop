@@ -9,8 +9,7 @@ nav_order: 2
 > **Who this is for:** people who are *new* to Azure networking and security services.
 > Every service is explained in plain language before you use it, and every command is
 > copy‑paste ready. If you have run the lab before and just want the short version, use
-> [`specs/001-netsec-demo-lab/quickstart.md`](../specs/001-netsec-demo-lab/quickstart.md)
-> or the [walkthrough section in the README](../README.md#workshop-walkthrough).
+> the [walkthrough section in the README](../README.md#workshop-walkthrough).
 
 ---
 

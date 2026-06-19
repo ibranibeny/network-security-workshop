@@ -5,9 +5,6 @@ hub-and-spoke network security lab in **West US (`westus`)**. It is derived from
 Microsoft **Azure Network Security PoC** and the **NetSec Demo Lab** template, and
 re-validated against current Microsoft Learn guidance.
 
-> Governance: this lab is built to the rules in
-> [`.specify/memory/constitution.md`](.specify/memory/constitution.md) (v2.0.1).
-
 ## Reference sources
 
 1. **Azure Network Security PoC — Part 2 (Deploying the environment)**
@@ -172,8 +169,7 @@ cd deploy
 
 ## Workshop walkthrough
 
-This is the suggested flow for running the lab as a guided session (~half a day). The formal
-requirements behind it live in [specs/001-netsec-demo-lab/spec.md](specs/001-netsec-demo-lab/spec.md).
+This is the suggested flow for running the lab as a guided session (~half a day).
 
 > 📘 **New to these services?** A detailed, beginner‑friendly walkthrough — with every Azure service
 > explained in plain language and copy‑paste commands for all scenarios (including firewall FQDN
