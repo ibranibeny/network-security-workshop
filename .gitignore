@@ -1,6 +1,8 @@
 # Exclude Speckit and local agent artifacts
 .specify/
 .github/prompts/speckit.*
+.github/agents/speckit.*
+specs/
 
 # Local temp/debug files
 .tmp_*
